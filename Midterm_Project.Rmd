@@ -409,10 +409,12 @@ mod_gm <- lm(log(revenue) ~ cereal + ad + promo + ad*promo + units, data = mtp_g
 summary(mod_gm)
 ```
 
+##As the market leader is there room for General Mills to imporve their in-store promotions?
+
 ```{r}
-mtp_gm %>% 
-  filter(ad == "B", promo == 1) %>%
-  group_by(cereal, ad, promo) %>% 
+mtp %>% 
+  filter( promo == 1) %>%
+  group_by(cereal, promo) %>% 
   summarise(count = n(),
   mean_revenue = mean(revenue),
   mean_price = mean(price),
@@ -422,4 +424,75 @@ mtp_gm %>%
   kable() %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
 ```
+
++ Null Hypothesis 1: Revenue is the same across all cereals when running instore promotions.
+
+```{r}
+
+mtp_hyp1 <- mtp %>%
+  filter(promo == 1)
+
+# Is revenue the same across brands?
+t.test(mtp_hyp1$revenue[mtp_hyp1$company == "General_Mills"], mtp_hyp1$revenue[mtp_hyp1$company == "Kelloggs"])
+
+t.test(mtp_hyp1$revenue[mtp_hyp1$company == "General_Mills"], mtp_hyp1$revenue[mtp_hyp1$company == "Post"])
+
+
+```
+
+```{r}
+# 90% CI, get z-value for upper tail, use .95 since is one sided
+z <- qnorm(.95)
+
+# Incorporate CI into bar graph of means
+mtp_hyp1 %>%
+  group_by(company) %>%
+  summarise(m = mean(revenue), sd = sd(revenue), 
+            n = n(), ci = z * sd/sqrt(n)) %>%
+  ggplot(aes(x = company, y = m)) +
+  geom_bar(stat = "identity", position = "dodge", fill = "#9ecae1") +
+  geom_errorbar(aes(ymin = m - ci, ymax = m + ci), 
+                width = 0.5, position = position_dodge(0.9)) +
+  ggtitle("Mean revenue is ")
+```
+
++ Null Hypothesis: Revenue is the same across General Mills cereals for in-store promotions.
+
+```{r}
+mtp_hyp2 <- mtp_gm %>%
+  filter(promo == 1)
+
+# Is revenue the same across brands?
+t.test(mtp_hyp2$revenue[mtp_hyp2$cereal == "Kix"], mtp_hyp2$revenue[mtp_hyp2$cereal == "Cheerios"])
+
+t.test(mtp_hyp2$revenue[mtp_hyp2$cereal == "Kix"], mtp_hyp2$revenue[mtp_hyp2$cereal == "Cinnamon Toast Crunch"])
+
+t.test(mtp_hyp2$revenue[mtp_hyp2$cereal == "Kix"], mtp_hyp2$revenue[mtp_hyp2$cereal == "Cocoa Puffs"])
+
+t.test(mtp_hyp2$revenue[mtp_hyp2$cereal == "Kix"], mtp_hyp2$revenue[mtp_hyp2$cereal == "Lucky Charms"])
+```
+```{r}
+# 90% CI, get z-value for upper tail, use .95 since is one sided
+z <- qnorm(.95)
+
+# Incorporate CI into bar graph of means
+mtp_hyp1 %>%
+  group_by(company, cereal) %>%
+  summarise(m = mean(revenue), sd = sd(revenue), 
+            n = n(), ci = z * sd/sqrt(n)) %>%
+  ggplot(aes(x = cereal, y = m, fill = reorder(company, -m))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = m - ci, ymax = m + ci), 
+                width = 0.5, position = position_dodge(0.9)) +
+  coord_flip() +
+  theme_classic() +
+  xlab("") +
+  labs(fill = "") +
+  theme(axis.ticks.x = element_blank(),
+          axis.title.x = element_blank(),
+          axis.ticks.y = element_blank()) +
+  scale_fill_brewer() +
+  ggtitle("Mean revenue is ")
+```
+
 
