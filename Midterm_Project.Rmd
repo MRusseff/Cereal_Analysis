@@ -386,7 +386,7 @@ ncol = 2
 ## Correlations
 
 ```{r, message = FALSE, error = FALSE}
-ggpairs(subset(mtp, select = -c(iri_key, package, week, cereal, company)))
+ggpairs(subset(mtp, select = -c(iri_key, package, cereal, company)))
 ```
 
 #Research Quesions
@@ -412,7 +412,8 @@ summary(mod_gm)
 ##As the market leader is there room for General Mills to imporve their in-store promotions?
 
 ```{r}
-mtp %>% 
+#Create a table of General Mills cereals and their mean revenue when an in-store promotion is happening.
+mtp_gm %>% 
   filter( promo == 1) %>%
   group_by(cereal, promo) %>% 
   summarise(count = n(),
@@ -430,7 +431,7 @@ mtp %>%
 ```{r}
 
 mtp_hyp1 <- mtp %>%
-  filter(promo == 1)
+  filter(promo == 1) 
 
 # Is revenue the same across brands?
 t.test(mtp_hyp1$revenue[mtp_hyp1$company == "General_Mills"], mtp_hyp1$revenue[mtp_hyp1$company == "Kelloggs"])
@@ -453,16 +454,23 @@ mtp_hyp1 %>%
   geom_bar(stat = "identity", position = "dodge", fill = "#9ecae1") +
   geom_errorbar(aes(ymin = m - ci, ymax = m + ci), 
                 width = 0.5, position = position_dodge(0.9)) +
+  theme_classic() +
+  xlab("") +
+  ylab("") +
+  theme(axis.ticks.x = element_blank(),
+          axis.title.x = element_blank(),
+          axis.ticks.y = element_blank()) +
   ggtitle("Mean revenue is ")
 ```
 
-+ Null Hypothesis: Revenue is the same across General Mills cereals for in-store promotions.
++ Null Hypothesis: Revenue is the same across all General Mills cereals for in-store promotions.
 
 ```{r}
 mtp_hyp2 <- mtp_gm %>%
   filter(promo == 1)
 
 # Is revenue the same across brands?
+#
 t.test(mtp_hyp2$revenue[mtp_hyp2$cereal == "Kix"], mtp_hyp2$revenue[mtp_hyp2$cereal == "Cheerios"])
 
 t.test(mtp_hyp2$revenue[mtp_hyp2$cereal == "Kix"], mtp_hyp2$revenue[mtp_hyp2$cereal == "Cinnamon Toast Crunch"])
@@ -480,7 +488,7 @@ mtp_hyp1 %>%
   group_by(company, cereal) %>%
   summarise(m = mean(revenue), sd = sd(revenue), 
             n = n(), ci = z * sd/sqrt(n)) %>%
-  ggplot(aes(x = cereal, y = m, fill = reorder(company, -m))) +
+  ggplot(aes(x = cereal, y = m, fill = reorder(company, m), order = company)) +
   geom_bar(stat = "identity", position = "dodge") +
   geom_errorbar(aes(ymin = m - ci, ymax = m + ci), 
                 width = 0.5, position = position_dodge(0.9)) +
@@ -495,4 +503,71 @@ mtp_hyp1 %>%
   ggtitle("Mean revenue is ")
 ```
 
+
+
+```{r}
+mtp_gm %>% 
+  group_by(company, ad) %>% 
+  summarise(count = n(),
+  mean_revenue = mean(revenue),
+  mean_price = mean(price),
+  mean_price_vol = mean(price_volume),
+  mean_units = mean(units)) %>%
+  arrange(desc(mean_revenue)) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+```{r}
+ 
+
+# Is revenue the same whether General Mills runs an add or not?
+t.test(mtp_gm$units[mtp_gm$ad == "NONE"], mtp_gm$units[mtp_gm$ad != "NONE"])
+
+# 
+t.test(mtp_gm$revenue[mtp_gm$ad == "NONE"], mtp_gm$revenue[mtp_gm$ad != "NONE"])
+
+```
+
+```{r}
+# 90% CI, get z-value for upper tail, use .95 since is one sided
+z <- qnorm(.95)
+
+# Incorporate CI into bar graph of means
+mtp %>%
+  group_by(company, ad) %>%
+  summarise(m = mean(units), sd = sd(units), 
+            n = n(), ci = z * sd/sqrt(n)) %>%
+  ggplot(aes(x = company, y = m, fill = ad)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = m - ci, ymax = m + ci), 
+                width = 0.5, position = position_dodge(0.9)) +
+  theme_classic() +
+  xlab("") +
+  ylab("") +
+  theme(axis.ticks.x = element_blank(),
+          axis.title.x = element_blank(),
+          axis.ticks.y = element_blank()) +
+  scale_fill_brewer() +
+  ggtitle("Mean Units is ")
+```
+
+```{r}
+mtp_gm %>%
+  group_by(cereal, ad) %>%
+  summarise(m = mean(units), sd = sd(units), 
+            n = n(), ci = z * sd/sqrt(n)) %>%
+  ggplot(aes(x = cereal, y = m, fill = ad)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = m - ci, ymax = m + ci), 
+                width = 0.5, position = position_dodge(0.9)) +
+  theme_classic() +
+  xlab("") +
+  ylab("") +
+  theme(axis.ticks.x = element_blank(),
+          axis.title.x = element_blank(),
+          axis.ticks.y = element_blank()) +
+  scale_fill_brewer() +
+  ggtitle("Mean Units is ")
+```
 
