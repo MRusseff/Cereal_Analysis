@@ -1,0 +1,425 @@
+---
+title: "Technical Appendix Midterm"
+authors: "Mark Russeff & Loi Pham"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: true
+---
+
+```{r}
+# Course: BUAN 5210
+# Title: Technical Appendix Midterm
+# Purpose: Midterm Project 
+# Date: February 14, 2019
+# Authors: Mark Russeff & Loi Pham
+```
+
+
+```{r echo = FALSE, message=FALSE, warning=FALSE}
+
+# Clear environment of variables and functions
+rm(list = ls(all = TRUE)) 
+
+# Clear environmet of packages
+if(is.null(sessionInfo()$otherPkgs) == FALSE)lapply(paste("package:", names(sessionInfo()$otherPkgs), sep=""), detach, character.only = TRUE, unload = TRUE)
+
+```
+```{r message = FALSE, warning = FALSE}
+
+# Load packages
+library(tidyverse)
+library(GGally)
+library(gridExtra)
+library(kableExtra)
+```
+
+#Load and Review Data
+```{r}
+#Load data
+mtp_product <- read.csv("mtp_product_data.csv")
+mtp_sales <- read.csv("mtp_sales_data.csv")
+
+#Check structure of the data
+str(mtp_product)
+str(mtp_sales)
+```
+
+##Join the Data Sets
+```{r}
+#Modify strings in UPC for join
+mtp_product$UPC <- str_replace(mtp_product$UPC,"00-","")
+mtp_sales$UPC <- str_replace_all(mtp_sales$UPC,"[.]","-")
+  
+#Join data frames into one by UPC
+mtp <- mtp_sales %>%
+  full_join(mtp_product, by = "UPC")
+
+```
+
+##Clean and Organize the Joined Data
+```{r}
+mtp <- mtp %>%
+  mutate(company = fct_collapse(mtp$brand, 
+                                General_Mills = c("GENERAL MILLS CHEERIOS", 
+                                                  "GENERAL MILLS CINNAMON TST CR", 
+                                                  "GENERAL MILLS COCOA PUFFS", "GENERAL MILLS KIX",
+                                                  "GENERAL MILLS LUCKY CHARMS"), 
+                                Kelloggs = c("KELLOGGS COCOA KRISPIES", "KELLOGGS FROOT LOOPS", 
+                                             "KELLOGGS FROSTED FLAKES", 
+                                             "KELLOGGS FROSTED MINI WHEATS","KELLOGGS RAISIN BRAN", 
+                                             "KELLOGGS RICE KRISPIES", "KELLOGGS SMART START", 
+                                             "KELLOGGS SPECIAL K"), 
+                                Post = c("POST GRAPE NUTS", "POST SHREDDED WHEAT"))) 
+
+mtp <- mtp %>%
+  mutate(cereal = fct_recode(brand,
+                            "Cheerios" = "GENERAL MILLS CHEERIOS",
+                            "Cinnamon Toast Crunch" = "GENERAL MILLS CINNAMON TST CR",
+                            "Cocoa Puffs" = "GENERAL MILLS COCOA PUFFS",
+                            "Kix" = "GENERAL MILLS KIX",
+                            "Lucky Charms" = "GENERAL MILLS LUCKY CHARMS",
+                            "Cocoa Krispies" = "KELLOGGS COCOA KRISPIES",
+                            "Froot Loops" = "KELLOGGS FROOT LOOPS", 
+                            "Frosted Flakes" = "KELLOGGS FROSTED FLAKES", 
+                            "Frosted Mini Wheats" = "KELLOGGS FROSTED MINI WHEATS",
+                            "Raisen Bran" = "KELLOGGS RAISIN BRAN", 
+                            "Rice Krispies" = "KELLOGGS RICE KRISPIES", 
+                            "Smart Start" = "KELLOGGS SMART START", 
+                            "Special K" = "KELLOGGS SPECIAL K",
+                            "Grape Nuts" = "POST GRAPE NUTS", 
+                            "Shredded Wheat" = "POST SHREDDED WHEAT"
+                            ))
+
+mtp <- mtp %>% 
+  mutate(promo = as.factor(promo))
+
+mtp <- mtp %>%
+  mutate(revenue = price * units) %>%
+  mutate(price_volume = price / volume) %>%
+  select(company, cereal, price, units, volume, revenue, price_volume, promo, ad, package, week, iri_key)
+
+```
+# Univariate non-graphical
+
+##Categorical data - summary
+```{r}
+# Inspect descriptive statistics of data
+summary(mtp)
+
+```
+
+**Observations on the data**
+
+- Kelloggs sells the most, followed by General Mills and Post.
+- Kelloggs Frosted Flakes and Froot Loops are the most popular cereals. 
+- Cinnamon Toast Crunch is General Mills' most popular cerearl.
+- Price has a tight interquartile range but a very low min and a high max.
+- Revenue is skewed due to some very large numbers.
+- Because it is calculated from price, price per volume also has a tight interquartile range and high min/max values.
+- Roughly 20% of the time there is an in-store promo.
+- Only about 11.5% of the time are there ads being run.
+- Ads and Promos make up a small percentage of total sales transactions.
+
+
+##Categorical data - tabulation
+
+###Company
+```{r}
+#Table of data by company.
+mtp %>% 
+  group_by(company) %>% 
+  summarise(count = n(),
+  mean_revenue = mean(revenue),
+  mean_price = mean(price),
+  mean_price_vol = mean(price_volume),
+  mean_units = mean(units)) %>%
+  arrange(desc(mean_revenue)) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+* Kelloggs has the highest number of sales but General Mills has the highest average revenue.
+* It looks like General Mills may have more pricing power in the market.  
+
+###Cereal
+
+```{r}
+#Table of data by cereal
+mtp %>% 
+  group_by(company, cereal) %>% 
+  summarise(count = n(),
+  mean_revenue = mean(revenue),
+  mean_price = mean(price),
+  mean_price_vol = mean(price_volume),
+  mean_units = mean(units)) %>%
+  arrange(desc(mean_revenue)) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+* General Mills strongest cereal brand in terms of average revenue is Cheerios.  
+  + This is primarily from a high average units combined with a higher price per oz.  
+  + Suggesting that Cheerios come in a smaller (lower volume) box or cup, so customers buy more units.  
+* In terms of average revenue General Mills Cereals are performing well amoung their peers.
+
+###Ad
+```{r}
+mtp %>% 
+  group_by(company, ad) %>% 
+  summarise(count = n(),
+  mean_revenue = mean(revenue),
+  mean_price = mean(price),
+  mean_price_vol = mean(price_volume),
+  mean_units = mean(units)) %>%
+  arrange(desc(mean_revenue)) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+* In terms of average revenue General Mills does better than their peers whether implimenting an Ad or not.  
+  + Interestingly, no ad performs better than having just a medium/small ad.  
+  + The medium/small ads for General Mills are underperforming compared to their peers.  
+  + This could be due to the fact that the average price and average price per oz are considerably lower with a B ad.
+
+
+###Promo
+```{r}
+mtp %>% 
+  group_by(company, promo) %>% 
+  summarise(count = n(),
+  mean_revenue = mean(revenue),
+  mean_price = mean(price),
+  mean_price_vol = mean(price_volume),
+  mean_units = mean(units)) %>%
+  arrange(desc(mean_revenue)) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+* In terms of average revenue General Mills is performing well compared to their peers whether they are running an instore promo or not.
+
+###Ad and Promo
+```{r}
+mtp %>% 
+  group_by(company, ad, promo) %>% 
+  summarise(count = n(),
+  mean_revenue = mean(revenue),
+  mean_price = mean(price),
+  mean_price_vol = mean(price_volume),
+  mean_units = mean(units)) %>%
+  arrange(desc(mean_revenue)) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+* We know that General Mills' medium/small ads are underperforming.  
+  + The underperfoming ads appear to be only when combined with instore promos.  
+  + For Kellogs and Post B ads with instore promos are thier best perfoming combination, yet not for General Mills.  
+  + **Why are Medium/Small Ads not woking in combination with instore promotions?**
+
+
+# Univariate graphical: categorical
+
+##Company
+```{r}
+grid.arrange(
+  mtp %>% 
+    group_by(company) %>% 
+    summarise(count = n()) %>% 
+    ggplot(aes(x = reorder(company, count),
+             y = count)) + 
+    geom_bar(stat = "identity", fill = "steelblue4") +
+    theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+    xlab("Company") +
+    ylab("") +
+    ggtitle("Number of Sales by Company",
+          subtitle = "Kelloggs has the highest number of sales."),
+
+  mtp %>% 
+    group_by(company) %>% 
+    summarise(mean_revenue = mean(revenue), count = n()) %>%
+    ggplot(aes(x = reorder(company, count),
+             y = mean_revenue)) + 
+    geom_bar(stat = "identity", fill = "steelblue4") +
+    theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+    xlab("Company") +
+    ylab("") +
+    ggtitle("Average Revenue by Company",
+          subtitle = "General Mills has the highest average revenue."),
+
+ncol = 2
+)
+```
+
+* We see that Kelloggs leads the idustry in number of sales but General Mills has a higher average revenue.
+
+##Cereal
+```{r}
+mtp %>% 
+    group_by(cereal) %>% 
+    summarise(count = n()) %>% 
+    ggplot(aes(x = reorder(cereal, count),
+             y = count)) + 
+    geom_bar(stat = "identity", fill = "steelblue4") +
+    theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+    coord_flip() +
+    xlab("Cereal") +
+    ylab("") +
+    ggtitle("Number of Sales by Cereal",
+          subtitle = "Frosted Flakes and Froot Loops are best selling cereals")
+```
+```{r}
+mtp %>% 
+    group_by(cereal) %>% 
+    summarise(mean_revenue = mean(revenue)) %>% 
+    ggplot(aes(x = reorder(cereal, mean_revenue),
+             y = mean_revenue)) + 
+    geom_bar(stat = "identity", fill = "steelblue4") +
+    theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+    coord_flip() +
+    xlab("Cereal") +
+    ylab("") +
+    ggtitle("Average Revenue by Cereal",
+          subtitle = "Cheerios has a very high average revenue compared to others")
+```
+```{r}
+mtp %>% 
+    group_by(cereal) %>% 
+    summarise(mean_units = mean(units)) %>% 
+    ggplot(aes(x = reorder(cereal, mean_units),
+             y = mean_units)) + 
+    geom_bar(stat = "identity", fill = "steelblue4") +
+    theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+    coord_flip() +
+    xlab("Cereal") +
+    ylab("") +
+    ggtitle("Average Units per sale by Cereal",
+          subtitle = "Cheerios has a very high average revenue compared to others")
+```
+
+* We can see by the graphs that Frosted Flakes and Froot Loops (Kelloggs brands) have the highest number of sales.  
+* Cheerios has the highest average revenue per sale and highest units per sale. (General Mills brand)  
+
+
+##Ad
+```{r}
+grid.arrange(
+  mtp %>% 
+    group_by(ad) %>% 
+    summarise(mean_units = mean(units)) %>% 
+    ggplot(aes(x = reorder(ad, mean_units),
+             y = mean_units)) + 
+    geom_bar(stat = "identity", fill = "steelblue4") +
+    theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+    xlab("Ads") +
+    ylab("") +
+    ggtitle("Average # of Units Sold by Ad Type",
+          subtitle = "What type of Ad moves the most units?"),
+
+  mtp %>% 
+    group_by(ad) %>% 
+    summarise(mean_revenue = mean(revenue)) %>%
+    ggplot(aes(x = reorder(ad, mean_revenue),
+             y = mean_revenue)) + 
+    geom_bar(stat = "identity", fill = "steelblue4") +
+    theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+    xlab("Ad") +
+    ylab("") +
+    ggtitle("Average Revenue by Ad Type",
+          subtitle = "Do ads lead to larger revenue on average?"),
+  
+
+ncol = 2
+)
+```
+
+* Running adds looks to slightly increase the average units sold but have very little affect on average revenue.  
+* Ad type B, medium/small ads, seem to be slightly more effective than A large ads.
+
+##Promo
+```{r}
+grid.arrange(
+  mtp %>% 
+    group_by(promo) %>% 
+    summarise(mean_units = mean(units)) %>% 
+    ggplot(aes(x = reorder(promo, mean_units),
+             y = mean_units)) + 
+    geom_bar(stat = "identity", fill = "steelblue4") +
+    theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+    xlab("Instore Promos") +
+    ylab("") +
+    ggtitle("Average # of Units Sold by Promo",
+          subtitle = "Running promos increases average units per sale."),
+
+  mtp %>% 
+    group_by(promo) %>% 
+    summarise(mean_revenue = mean(revenue)) %>%
+    ggplot(aes(x = reorder(promo, mean_revenue),
+             y = mean_revenue)) + 
+    geom_bar(stat = "identity", fill = "steelblue4") +
+    theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+    xlab("Instore Promos") +
+    ylab("") +
+    ggtitle("Average Revenue by Promo",
+          subtitle = "Promos don't lead to much higher average revenue."),
+  
+
+ncol = 2
+)
+```
+
+* Similar as with the ads, instore promos look to slightly increase average units but very little affect on average revenue.  
+
+
+#Multi-variate graphical: quantitative
+## Correlations
+
+```{r, message = FALSE, error = FALSE}
+ggpairs(subset(mtp, select = -c(iri_key, package, week, cereal, company)))
+```
+
+#Research Quesions
+##Is General Mills underperforming the market when combining B ads (medium/small) with instore promotions, Why?  
+
+
+```{r}
+
+mod_all <- lm(log(revenue) ~ cereal + ad + promo + ad*promo + units, data = mtp)
+
+# Review output
+summary(mod_all)
+
+mtp_gm <- mtp %>%
+  filter(company == "General_Mills")
+  
+mod_gm <- lm(log(revenue) ~ cereal + ad + promo + ad*promo + units, data = mtp_gm)
+
+# Review output
+summary(mod_gm)
+```
+
+```{r}
+mtp_gm %>% 
+  filter(ad == "B", promo == 1) %>%
+  group_by(cereal, ad, promo) %>% 
+  summarise(count = n(),
+  mean_revenue = mean(revenue),
+  mean_price = mean(price),
+  mean_price_vol = mean(price_volume),
+  mean_units = mean(units)) %>%
+  arrange(desc(mean_revenue)) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
