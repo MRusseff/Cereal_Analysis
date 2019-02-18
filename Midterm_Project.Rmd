@@ -495,7 +495,7 @@ mtp %>%
           subtitle = "Cheerios are not run on promotion very often")
 ```
 
-#Research Quesions
+#Research Questions
 ##Is General Mills underperforming the market when combining B ads (medium/small) with instore promotions, Why?  
 
 
@@ -621,11 +621,69 @@ mtp_hyp1 %>%
 ```
 
 ```{r}
+
+#Combining the three graphs into one like above but with each company ordered
+grid.arrange(
+  
+  mtp_hyp1 %>%
+    filter(company == "Post") %>%
+    group_by(company, cereal) %>%
+    summarise(m = mean(revenue), sd = sd(revenue), 
+            n = n(), ci = z * sd/sqrt(n)) %>%
+    ggplot(aes(x = reorder(cereal, m), y = m)) +
+    geom_bar(stat = "identity", position = "dodge", fill = "#deebf7") +
+    coord_flip() +
+    theme_classic() +
+    xlab("") +
+    labs(fill = "") +
+    theme(axis.ticks.x = element_blank(),
+          axis.title.x = element_blank(),
+          axis.ticks.y = element_blank()) +
+    scale_fill_brewer() +
+    ggtitle("Mean revenue is "),
+
+  mtp_hyp1 %>%
+    filter(company == "Kelloggs") %>%
+    group_by(company, cereal) %>%
+    summarise(m = mean(revenue), sd = sd(revenue), 
+            n = n(), ci = z * sd/sqrt(n)) %>%
+    ggplot(aes(x = reorder(cereal, m), y = m)) +
+    geom_bar(stat = "identity", position = "dodge", fill = "#9ecae1") +
+    coord_flip() +
+    theme_classic() +
+    xlab("") +
+    labs(fill = "") +
+    theme(axis.ticks.x = element_blank(),
+          axis.title.x = element_blank(),
+          axis.ticks.y = element_blank()) +
+    scale_fill_brewer(),
+
+  mtp_hyp1 %>%
+    filter(company == "General_Mills") %>%
+    group_by(company, cereal) %>%
+    summarise(m = mean(revenue), sd = sd(revenue), 
+            n = n(), ci = z * sd/sqrt(n)) %>%
+    ggplot(aes(x = reorder(cereal, m), y = m)) +
+    geom_bar(stat = "identity", position = "dodge", fill = "#3182bd") +
+    coord_flip() +
+    theme_classic() +
+    xlab("") +
+    labs(fill = "") +
+    theme(axis.ticks.x = element_blank(),
+          axis.title.x = element_blank(),
+          axis.ticks.y = element_blank()) +
+    scale_fill_brewer(),
+  
+  ncol = 1
+)
+```
+
+```{r}
 mtp_hyp1 %>%
   group_by(company, cereal) %>%
-  summarise(m = mean(volume), sd = sd(volume), 
+  summarise(m = mean(price), sd = sd(price), 
             n = n(), ci = z * sd/sqrt(n)) %>%
-  ggplot(aes(x = cereal, y = m, fill = reorder(company, m), order = company)) +
+  ggplot(aes(x = cereal, y = m, fill = company)) +
   geom_bar(stat = "identity", position = "dodge") +
   geom_errorbar(aes(ymin = m - ci, ymax = m + ci), 
                 width = 0.5, position = position_dodge(0.9)) +
