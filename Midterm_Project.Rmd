@@ -35,6 +35,7 @@ library(tidyverse)
 library(GGally)
 library(gridExtra)
 library(kableExtra)
+library(scales)
 ```
 
 #Load and Review Data
@@ -445,6 +446,54 @@ ggpairs(subset(mtp, select = -c(iri_key, package, cereal, company, week)))
 - Units and Revenue appear to have a Chi-squarted distribution.  
 - Both ad and promo have a lot of revenue values above the interquartile range, it should be okay but be cautious using mean.  
 
+#Multi-variate graphical: categorical and quantitative
+
+```{r}
+mtp %>% 
+  mutate(ad = if_else(ad == "A", "Big", if_else(ad == "B", "Medium/Small", "None"))) %>% 
+  group_by(cereal, ad) %>%
+  summarise(units_sold = sum(units) / 1000) %>%
+  ggplot(aes(x = reorder(cereal, units_sold), y = units_sold, fill = ad)) +
+    geom_bar(stat = "identity") + 
+    labs(fill = "Ad", y = "Units sold (,000)") +
+    coord_flip() +
+    guides(fill = guide_legend(reverse = TRUE)) +
+    theme_classic() +
+    theme(legend.position = "top", 
+          legend.justification = "center",
+          legend.title = element_text(face = "bold"),
+          axis.title.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.line.y = element_blank()) +
+    ggtitle("Units Sold Per Cereal",
+          subtitle = "Most units are not sold in conjuction with ads")
+```
+
+```{r}
+mtp %>% 
+  group_by(cereal, promo) %>% 
+  summarise(subtotal = sum(units)) %>% 
+  group_by(cereal) %>% 
+  mutate(promo_pct = subtotal / sum(subtotal),
+         promo = if_else(promo == 1, "Yes", "No")) %>%
+  arrange(promo, promo_pct) %>% 
+  mutate(brand2 = factor(cereal, levels = filter(., promo == "Yes") %>% .$cereal)) %>% 
+  ggplot(aes(x = brand2, y = promo_pct, fill = promo)) +
+    geom_bar(stat = "identity") + 
+    labs(fill = "Promotion", y = "Sales") +
+    coord_flip() +
+    guides(fill = guide_legend(reverse = TRUE)) +
+    scale_y_continuous(labels = percent_format(accuracy = 1, suffix = "%")) +
+    theme_classic() +
+    theme(legend.position = "top", 
+          legend.justification = "center",
+          legend.title = element_text(face = "bold"),
+          axis.title.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.line.y = element_blank()) +
+    ggtitle("Promotional Distribution",
+          subtitle = "Cheerios are not run on promotion very often")
+```
 
 #Research Quesions
 ##Is General Mills underperforming the market when combining B ads (medium/small) with instore promotions, Why?  
@@ -556,7 +605,7 @@ mtp_hyp1 %>%
   group_by(company, cereal) %>%
   summarise(m = mean(revenue), sd = sd(revenue), 
             n = n(), ci = z * sd/sqrt(n)) %>%
-  ggplot(aes(x = cereal, y = m, fill = reorder(company, m))) +
+  ggplot(aes(x = reorder(cereal, m), y = m, fill = reorder(company, m))) +
   geom_bar(stat = "identity", position = "dodge") +
   geom_errorbar(aes(ymin = m - ci, ymax = m + ci), 
                 width = 0.5, position = position_dodge(0.9)) +
