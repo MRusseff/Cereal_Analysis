@@ -642,19 +642,22 @@ mtp_g2 <- mtp_gm %>%
   ggplot(aes(x = reorder(cereal, m), y = m, fill = promo)) +
   geom_bar(stat = "identity", position = "dodge") +
   coord_flip() +
+  scale_y_continuous(limits = c(0, 60),
+                     labels = dollar_format(prefix = "$")) +
   theme_classic() +
-  xlab("") +
   labs(fill = "Promotion") +
   theme(axis.text = element_text(face = "bold", size = 11),
-        axis.ticks.x = element_blank(),
-        axis.title.x = element_blank(),
         axis.title = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.line.y = element_blank(),
+        axis.line.x = element_line(colour = "grey"),
         legend.position = "top",
         legend.title = element_text(face = "bold")) +
   scale_fill_brewer() +
-  ggtitle("Mean RevenueBased on Promotions",
+  ggtitle("Mean Revenue Based on Promotions",
           subtitle = "Cocoa Puffs and Kix lag behind other brands")
 
+mtp_g2
 
 ggsave("mtp_g2.png", plot = mtp_g2)
 
@@ -728,6 +731,7 @@ gGMills <- mtp_hyp1 %>%
     theme(axis.line.y = element_blank(),
           axis.title = element_blank(),
           axis.ticks.y = element_blank(),
+          axis.line.x = element_line(colour = "grey"),
           axis.text = element_text(size = 9),
           legend.position = "bottom") +
   ggtitle("General Mills") +
@@ -743,9 +747,8 @@ mtp_g1 <- cowplot::plot_grid(gPost, gKelloggs, gGMills,
                    rel_heights = c(0.23, 0.5, 0.4),
                    labels = "Average Revenue During Promotions",
                    label_size = 12,
-                   hjust = -1.2,
+                   hjust = -0.9,
                    vjust = 1.7)
-
 mtp_g1
 
 ggsave("mtp_g1.png", plot = mtp_g1)
@@ -891,7 +894,6 @@ mtp_gm %>%
           subtitle = "Running ads does statistically effect average units. ")
 
 #Graph for Memo finding 2.
-
 mtp_g3 <- mtp_gm %>%
   mutate(ad = if_else(ad == "A", "Big", if_else(ad == "B", "Medium/Small", "None")),
          cereal = str_replace(cereal, "Toast Crunch", "Tst Crn")) %>%
@@ -901,11 +903,14 @@ mtp_g3 <- mtp_gm %>%
   ggplot(aes(x = reorder(cereal,m), y = m, fill = ad)) +
   geom_bar(stat = "identity", position = "dodge") +
   theme_classic() +
+  scale_y_continuous(limits = c(0, 20),
+                     labels = dollar_format(prefix = "$")) +
   labs(fill = "Ad") +
   theme(axis.text = element_text(face = "bold", size = 9),
         axis.ticks.x = element_blank(),
         axis.title.x = element_blank(),
         axis.title = element_blank(),
+        axis.line = element_line(colour = "grey"),
         legend.position = "top",
         legend.title = element_text(face = "bold")) + 
   scale_fill_brewer(palette = "Purples") +
