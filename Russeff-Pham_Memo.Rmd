@@ -2,37 +2,56 @@
 output: html_document
 ---
 
-#### **To: Chris Lee**  
+#### **To: General Mills Management**  
   
 #### **From: Mark Russeff & Loi Pham**  
   
 #### **Date: `r format(Sys.time(), '%B %d, %Y')`**   
   
-#### **RE: Office Mate Sales Analysis**  
+#### **RE: General Mills Sales Analysis**  
 
 *** 
   
-  Our team was tasked with performing an exploratory data analysis (EDA) of the sales of Office Mate in order to make sales strategy recommendations to improve the profitability of the business moving forward. Using the data provided, we were able to analyze the sales figures and identify two areas where we can minimize loss and maximize profit. Based on our analysis we recommend instituting a company-wide sales initiative to limit the use of discounts; particularly those above 30% because they are having a substantially negative effect on profitability. Second, we recommend that the sale of tables and other large items be phased out because they have not shown to be significantly profitable in any region.  
+```{r echo = FALSE}
+# Course: BUAN 5210
+# Title: Memo for General Mills
+# Purpose: Provide Recommendations Based on our EDA
+# Date: February 18, 2019
+# Author: Mark Russeff & Loi Pham
+```
 
-  The use of discounts above 30% by the sales staff has led to substantial loses, so in order to combat the use of such discounts we recommend instituting a company-wide initiative to discourage the use of excessive discounting. As the size of discounts increases the profits from those transactions decreases resulting in substantial losses for the company. In fact, we found little evidence that discounting even leads to higher quantity orders. The accompanying graph illustrates the effect this discounting is having on profitability. As you can see, the Central Region has been giving discounts of 80% which have resulted in significant losses for the company. If this discounting can be cut back we can minimize these losses and move forward on a path to greater profitability.  
+  The General Mills family of branded cereals represent some of the most well-known and best-selling cereal brands in the world. Our team has been tasked with analyzing General Mills’ current advertising and promotional strategies and make recommendations that will grow market share and increase profitability moving forward. The sample data set used for our analysis was provided by General Mills and contains one year of sales, ad, and promotional data for various cereal brands. Our analysis revealed that while Kellogg’s may be the market leader in overall sales, General Mills is well positioned in the marketplace with considerable pricing power and strong revenue. Our team found that General Mills’ in-store promotions reliably yield better revenue than that of their competitors and that the current advertising strategy consistently produces larger unit sales but fails to significantly increase revenue. It is based on these finding that we have prepared two recommendations in order to optimize these strategies moving forward: First, we identified the Kix cereal brand as lagging behind its peers and as such we recommend lowering its price to increase units sold and drive revenue. Next, we recommend maintaining the current ad strategy but with an increase in the number of ads run without promotions in order to maximize units sold at higher price points, increasing revenue and improving return on investment for advertising.
   
-![](dis_g1.png){width=600px} 
+  The focus of this analysis is to evaluate the current promotions and advertising strategies implemented by General Mills. It has been shown that the current promotional strategy has been successful at generating revenue. In the graph below, we can see that during promotions the average revenue of General Mills’ brands are strong. However, we can also see that Cocoa Puffs and Kix seem to be struggling to achieve similar revenues to their peers.    If we examine the second graph below containing just General Mills brands, we can see that while both Kix and Cocoa Puffs are falling short in terms of revenue, promotions for Cocoa Puffs have been very effective. There is no discernable change in Kix when a promotion is implemented. This could be due to the fact that Kix has a very high average price per volume so their packaging may be too small and customers are not seeing it as a "good value" whether it is on promotion or not.  Based on our analysis, our recommendation is to lower the price more on Kix during the in-store promotions and run specials on larger packaging sizes. By lowering the price and testing different packaging sizes during in-store promotions, new sales data can be gathered for further analysis that could yield revenue growth for Kix moving forward.     
   
-  Our second recommendation is to gradually begin to pull back on the sale of tables, as well as other large high overhead items. This can be done in phases, beginning with tables and then moving into other unprofitable categories. In our analysis we found that the sale of tables resulted in losses to the company and have overall been our most unprofitable category. In addition, tables have also been discounted at a fairly high rate which is surely having a negative effect. Tables also require higher shipping costs and more storage space, both hidden costs that can negatively affect profit. The graph below vividly illustrates the magnitude to which the sale of tables has lagged behind many other categories. If we examine a graph separated by region we can also see that even our best performing sales team (the West region) has only achieved a small amount of success selling tables.  
-  
-  
+<br> 
+<br> 
+![](mtp_g1.png){width=600px} 
+<br>  
+<br> 
+<br> 
+   
+![](mtp_g2.png){width=600px}  
 
-![](profit_g1.png){width=600px}  
+<br>   
+<br>   
+  In our analysis of the current advertising strategy we found that running ads of any size did not have a consistent effect on revenue. It did find that there is a reliable effect on the number of units sold. As you can observe in the graph below, in all cases the use of advertising increased the average units sold. This is a positive finding for General Mills. It demonstrates that the ads are effective but are just not translating to significant revenue increases. Our recommendation is to shift more of the advertising spend toward products that are not on promotion. Using ad buys for products that are at full price will help drive up revenue. In Addition, further analysis should be conducted to determine other effect the increased unit sales may have on the brand that are more difficult to measure; like brand loyalty. It could be determined that increasing revenue is not required as long as the increase in units corresponds to other more intangible benefits. 
+  
+<br> 
+<br> 
+![](mtp_g3.png){width=600px}
 
-![](profit_g2.png){width=600px}
-  
-  
-  In conclusion, we believe that the best path to higher profits for Office Mate is to first focus on minimizing losses so that we can shift focus on driving sales in growth categories moving forward. Based on our findings, limiting discounting and the sale of unprofitable categories is how we do that. There may also be a need for further exploration to determine the reasons for the high volume of discounting within the company. If you have any questions regarding our analysis please do not hesitate to contact us. Upon request we can provide a more in-depth analysis with code and additional graphs.  
-  
-  
-  
+<br> 
+<br> 
+  In conclusion, General Mills is currently positioned well in the marketplace and large overhauls to the promotional and advertising strategies are not required at this time. It should be noted, however, that while our small adjustments should yield results, further data analysis will be necessary to continue to address both the lagging revenue at Kix and the lack of revenue generated by the current advertising campaigns.
 
+  Please do not hesitate to contact us if you have questions or would like to discuss the analysis further. We can also provide our complete analysis with data, code and additional graphs and tables if you would like more details. We look forward to working with you in the future as you continue to optimize and reevaluate your sales and marketing strategies.  
+  
+<br> 
+<br> 
 Sincerely,
 
 Mark Russeff & Loi Pham
 
+<br> 
+<br> 

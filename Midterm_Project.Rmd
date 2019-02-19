@@ -566,7 +566,7 @@ mtp_gm <- mtp %>%
   filter(company == "General_Mills")
 
 #Create a table of General Mills cereals and their mean revenue when an in-store promotion is happening.
-mtp %>% 
+mtp_t1 <- mtp_gm %>% 
   filter(promo == 1) %>%
   group_by(cereal) %>% 
   summarise(Count = n(),
@@ -577,8 +577,9 @@ mtp %>%
   arrange(desc(Average_Revenue)) %>%
   kable() %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
-  row_spec(1, background = "#e5f5e0") %>%
-  row_spec(10, background = "#fee0d2")
+  row_spec(5, background = "#fee0d2")
+
+mtp_t1
 
 ```
 Analysis
@@ -654,7 +655,7 @@ mtp_g2 <- mtp_gm %>%
         legend.position = "top",
         legend.title = element_text(face = "bold")) +
   scale_fill_brewer() +
-  ggtitle("Mean Revenue Based on Promotions",
+  ggtitle("Average Revenue Based on Promotions",
           subtitle = "Cocoa Puffs and Kix lag behind other brands")
 
 mtp_g2
@@ -903,8 +904,7 @@ mtp_g3 <- mtp_gm %>%
   ggplot(aes(x = reorder(cereal,m), y = m, fill = ad)) +
   geom_bar(stat = "identity", position = "dodge") +
   theme_classic() +
-  scale_y_continuous(limits = c(0, 20),
-                     labels = dollar_format(prefix = "$")) +
+  scale_y_continuous(limits = c(0, 20)) +
   labs(fill = "Ad") +
   theme(axis.text = element_text(face = "bold", size = 9),
         axis.ticks.x = element_blank(),
@@ -914,7 +914,7 @@ mtp_g3 <- mtp_gm %>%
         legend.position = "top",
         legend.title = element_text(face = "bold")) + 
   scale_fill_brewer(palette = "Purples") +
-  ggtitle("Mean Units Based on Ads",
+  ggtitle("Average Units Based on Ads",
           subtitle = "Running ads does statistically effect average units. ")
 
 mtp_g3
@@ -950,7 +950,7 @@ summary(mod_gm)
 Note: A regression analysis was not used for our analysis but is included here to give a deeper understanding of the data & dynamics at play, price was excluded to limit endogenous variable bias.  
 
 * We can see the relationship with units; controlling for all other variables revenue increases by roughly 11% for each additional unit and is highly statistically significant.  
-  +This is in line with our analysis concerning the importance of units sold on revenue.  
+  + This is in line with our analysis concerning the importance of units sold on revenue.  
 
 * There is a large negative relationship between running an in-store promotion and revenue; however, we have to remember that this is controlling for all other variables so without an increase in units running a promotion will decrease revenue by 21.65% industry wide and 25.52% for General Mills and is highly statistically significant.  
 
