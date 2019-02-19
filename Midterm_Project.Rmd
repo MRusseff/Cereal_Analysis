@@ -36,6 +36,7 @@ library(GGally)
 library(gridExtra)
 library(kableExtra)
 library(scales)
+library(cowplot)
 ```
 
 #Load and Review Data
@@ -496,57 +497,29 @@ mtp %>%
 ```
 
 #Research Questions
-##Is General Mills underperforming the market when combining B ads (medium/small) with instore promotions, Why?  
 
+##Question 1: How effective is Genereal Mills' promotional strategy and what brands can we focus on to improve promotional success? 
+
+###First we examine General Mills' current promotional strategy compared to the market.
 
 ```{r}
-
-mod_all <- lm(log(revenue) ~ cereal + ad + promo + ad*promo + units, data = mtp)
-
-# Review output
-summary(mod_all)
-
-mtp_gm <- mtp %>%
-  filter(company == "General_Mills")
-  
-mod_gm <- lm(log(revenue) ~ cereal + ad + promo + ad*promo + units, data = mtp_gm)
-
-# Review output
-summary(mod_gm)
+mtp %>% 
+  filter(promo == 1) %>%
+  group_by(company) %>% 
+  summarise(Count = n(),
+  Average_Revenue = mean(revenue),
+  Average_Price = mean(price),
+  Average_Price_Vol = mean(price_volume),
+  Average_Units = mean(units)) %>%
+  arrange(desc(Average_Revenue)) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  row_spec(1, background = "#e5f5e0")
 ```
 
-##As the market leader is there room for General Mills to imporve their in-store promotions?
+**Null Hypothesis: Revenue is the same across all companies when running instore promotions.**
 
 ```{r}
-#Create a table of General Mills cereals and their mean revenue when an in-store promotion is happening.
-mtp_gm %>% 
-  group_by(cereal, promo) %>% 
-  summarise(count = n(),
-  mean_revenue = mean(revenue),
-  mean_price = mean(price),
-  mean_price_vol = mean(price_volume),
-  mean_units = mean(units)) %>%
-  
-  kable() %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
-
-mtp_gm %>% 
-  filter(cereal %in% c("Cocoa Puffs", "Kix")) %>%
-  group_by(cereal, promo) %>% 
-  summarise(count = n(),
-  mean_revenue = mean(revenue),
-  mean_price = mean(price),
-  mean_price_vol = mean(price_volume),
-  mean_units = mean(units)) %>%
-  arrange(desc(promo)) %>%
-  kable() %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
-```
-
-+ Null Hypothesis 1: Revenue is the same across all cereals when running instore promotions.
-
-```{r}
-
 mtp_hyp1 <- mtp %>%
   filter(promo == 1) 
 
@@ -555,10 +528,10 @@ t.test(mtp_hyp1$revenue[mtp_hyp1$company == "General_Mills"], mtp_hyp1$revenue[m
 
 t.test(mtp_hyp1$revenue[mtp_hyp1$company == "General_Mills"], mtp_hyp1$revenue[mtp_hyp1$company == "Post"])
 
-
 ```
 
 ```{r}
+#Graphing the relationship between in-store promotions and revenue across companies.
 # 90% CI, get z-value for upper tail, use .95 since is one sided
 z <- qnorm(.95)
 
@@ -577,17 +550,53 @@ mtp_hyp1 %>%
   theme(axis.ticks.x = element_blank(),
           axis.title.x = element_blank(),
           axis.ticks.y = element_blank()) +
-  ggtitle("Mean revenue is ")
+  ggtitle("Mean Revenue When Running a Promotion",
+          subtitle = "General Mills' promotions have higher average than competition.")
 ```
 
-+ Null Hypothesis: Revenue is the same across all General Mills cereals for in-store promotions.
+**Findings**  
+* Based on our sample and the above analysis we can see that General Mills current promotional strategy fairs better than the rest of the market.  
+* Examining the t-tests we can reliably say that in terms of mean revenue General Mills' results are statistically different.  
+* Current strategy seems to be working well in comparison to peers.  
+
+###Next we examine General Mills' family of cereal brands to see if we can improve promotional performance anywhere.
+
+```{r}
+mtp_gm <- mtp %>%
+  filter(company == "General_Mills")
+
+#Create a table of General Mills cereals and their mean revenue when an in-store promotion is happening.
+mtp %>% 
+  filter(promo == 1) %>%
+  group_by(cereal) %>% 
+  summarise(Count = n(),
+  Average_Revenue = mean(revenue),
+  Average_Price = mean(price),
+  Average_Price_Vol = mean(price_volume),
+  Average_Units = mean(units)) %>%
+  arrange(desc(Average_Revenue)) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  row_spec(1, background = "#e5f5e0") %>%
+  row_spec(10, background = "#fee0d2")
+
+```
+Analysis
+
+* When on promotion Cheerios does very well, leading the industry in mean revenue and mean units.  
+* Both Cocoa Puffs and Kix are struggling with mean revenue both during promotion and not.  
+  + This is likely due to lot mean units, perhaps the price is to high.  
+  + Of interest, the average price per volume is very high for Kix, too small of package?  
+  
+
+**Null Hypothesis: Revenue is the same across all General Mills cereals during in-store promotions.**
 
 ```{r}
 mtp_hyp2 <- mtp_gm %>%
   filter(promo == 1)
 
-# Is revenue the same across brands?
-#
+# Is mean revenue the same across all General Mills' brands?
+
 t.test(mtp_hyp2$revenue[mtp_hyp2$cereal == "Kix"], mtp_hyp2$revenue[mtp_hyp2$cereal == "Cheerios"])
 
 t.test(mtp_hyp2$revenue[mtp_hyp2$cereal == "Kix"], mtp_hyp2$revenue[mtp_hyp2$cereal == "Cinnamon Toast Crunch"])
@@ -597,68 +606,115 @@ t.test(mtp_hyp2$revenue[mtp_hyp2$cereal == "Kix"], mtp_hyp2$revenue[mtp_hyp2$cer
 t.test(mtp_hyp2$revenue[mtp_hyp2$cereal == "Kix"], mtp_hyp2$revenue[mtp_hyp2$cereal == "Lucky Charms"])
 ```
 ```{r}
+#Graphing mean promotional revenue across General Mill branded cereals.
 # 90% CI, get z-value for upper tail, use .95 since is one sided
 z <- qnorm(.95)
 
 # Incorporate CI into bar graph of means
-mtp_hyp1 %>%
-  group_by(company, cereal) %>%
+mtp_gm %>%
+  mutate(promo = if_else(promo == "0", "None", "In-store Promotion")) %>%
+  group_by(cereal, promo) %>%
   summarise(m = mean(revenue), sd = sd(revenue), 
             n = n(), ci = z * sd/sqrt(n)) %>%
-  ggplot(aes(x = reorder(cereal, m), y = m, fill = reorder(company, m))) +
+  ggplot(aes(x = reorder(cereal, m), y = m, fill = promo)) +
   geom_bar(stat = "identity", position = "dodge") +
   geom_errorbar(aes(ymin = m - ci, ymax = m + ci), 
                 width = 0.5, position = position_dodge(0.9)) +
   coord_flip() +
   theme_classic() +
   xlab("") +
-  labs(fill = "") +
-  theme(axis.ticks.x = element_blank(),
-          axis.title.x = element_blank(),
-          axis.ticks.y = element_blank()) +
+  labs(fill = "Promotion") +
+  theme(axis.text = element_text(face = "bold", size = 11),
+        axis.ticks.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "top",
+        legend.title = element_text(face = "bold")) +
   scale_fill_brewer() +
-  ggtitle("Mean revenue is ")
+  ggtitle("Mean Revenue Based on Promotions",
+          subtitle = "Cocoa Puffs and Kix lag behind other brands")
+
+mtp_g2 <- mtp_gm %>%
+  mutate(promo = if_else(promo == "0", "None", "In-store Promotion")) %>%
+  group_by(cereal, promo) %>%
+  summarise(m = mean(revenue), sd = sd(revenue), 
+            n = n(), ci = z * sd/sqrt(n)) %>%
+  ggplot(aes(x = reorder(cereal, m), y = m, fill = promo)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  coord_flip() +
+  theme_classic() +
+  xlab("") +
+  labs(fill = "Promotion") +
+  theme(axis.text = element_text(face = "bold", size = 11),
+        axis.ticks.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "top",
+        legend.title = element_text(face = "bold")) +
+  scale_fill_brewer() +
+  ggtitle("Mean RevenueBased on Promotions",
+          subtitle = "Cocoa Puffs and Kix lag behind other brands")
+
+
+ggsave("mtp_g2.png", plot = mtp_g2)
+
 ```
 
-```{r}
 
-#Combining the three graphs into one like above but with each company ordered
-grid.arrange(
-  
-  mtp_hyp1 %>%
+```{r}
+gPost <- mtp_hyp1 %>%
     filter(company == "Post") %>%
     group_by(company, cereal) %>%
     summarise(m = mean(revenue), sd = sd(revenue), 
             n = n(), ci = z * sd/sqrt(n)) %>%
     ggplot(aes(x = reorder(cereal, m), y = m)) +
-    geom_bar(stat = "identity", position = "dodge", fill = "#deebf7") +
+    geom_bar(stat = "identity", position = "dodge", 
+             fill = "#deebf7") + 
     coord_flip() +
+  scale_y_continuous(limits = c(0, 50)) + 
     theme_classic() +
-    xlab("") +
-    labs(fill = "") +
-    theme(axis.ticks.x = element_blank(),
-          axis.title.x = element_blank(),
-          axis.ticks.y = element_blank()) +
-    scale_fill_brewer() +
-    ggtitle("Mean revenue is "),
+    theme(axis.line.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.line.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          axis.title = element_blank(),
+          axis.text.y = element_text(size = 9),
+          axis.text.x = element_blank()) +
+    ggtitle("Post") +
+  theme(plot.title = element_text(hjust = -0.08, 
+                                  vjust = -0.30,
+                                  colour = "black",
+                                  face = "bold",
+                                  size = 11),
+        plot.margin = unit(c(0.3,0.3,0.3,0.3), "cm"))
 
-  mtp_hyp1 %>%
+gKelloggs <- mtp_hyp1 %>%
     filter(company == "Kelloggs") %>%
     group_by(company, cereal) %>%
     summarise(m = mean(revenue), sd = sd(revenue), 
             n = n(), ci = z * sd/sqrt(n)) %>%
     ggplot(aes(x = reorder(cereal, m), y = m)) +
-    geom_bar(stat = "identity", position = "dodge", fill = "#9ecae1") +
+    geom_bar(stat = "identity", position = "dodge", 
+             fill = "#9ecae1") + 
     coord_flip() +
+  scale_y_continuous(limits = c(0, 50)) +
     theme_classic() +
-    xlab("") +
-    labs(fill = "") +
-    theme(axis.ticks.x = element_blank(),
-          axis.title.x = element_blank(),
-          axis.ticks.y = element_blank()) +
-    scale_fill_brewer(),
+    theme(axis.line.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.line.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          axis.title = element_blank(),
+          axis.text.y = element_text(size = 9),
+          axis.text.x = element_blank()) +
+  ggtitle("Kelloggs") +
+  theme(plot.title = element_text(hjust = -0.16, 
+                                  vjust = -0.16,
+                                  colour = "black",
+                                  face = "bold",
+                                  size = 11),
+        plot.margin = unit(c(0.2,0.2,0.2,0.2), "cm"))
 
-  mtp_hyp1 %>%
+gGMills <- mtp_hyp1 %>%
     filter(company == "General_Mills") %>%
     group_by(company, cereal) %>%
     summarise(m = mean(revenue), sd = sd(revenue), 
@@ -666,74 +722,79 @@ grid.arrange(
     ggplot(aes(x = reorder(cereal, m), y = m)) +
     geom_bar(stat = "identity", position = "dodge", fill = "#3182bd") +
     coord_flip() +
+  scale_y_continuous(limits = c(0, 50),
+                     labels = dollar_format(prefix = "$")) +
     theme_classic() +
-    xlab("") +
-    labs(fill = "") +
-    theme(axis.ticks.x = element_blank(),
-          axis.title.x = element_blank(),
-          axis.ticks.y = element_blank()) +
-    scale_fill_brewer(),
-  
-  ncol = 1
-)
+    theme(axis.line.y = element_blank(),
+          axis.title = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.text = element_text(size = 9),
+          legend.position = "bottom") +
+  ggtitle("General Mills") +
+  theme(plot.title = element_text(hjust = -0.24, 
+                                  vjust = -0.24,
+                                  colour = "black",
+                                  face = "bold",
+                                  size = 11),
+        plot.margin = unit(c(0.2,0.2,0.2,0.2), "cm"))
+
+mtp_g1 <- cowplot::plot_grid(gPost, gKelloggs, gGMills, 
+                   align = "v", nrow = 3, 
+                   rel_heights = c(0.23, 0.5, 0.4),
+                   labels = "Average Revenue During Promotions",
+                   label_size = 12,
+                   hjust = -1.2,
+                   vjust = 1.7)
+
+mtp_g1
+
+ggsave("mtp_g1.png", plot = mtp_g1)
 ```
 
-```{r}
-mtp_hyp1 %>%
-  group_by(company, cereal) %>%
-  summarise(m = mean(price), sd = sd(price), 
-            n = n(), ci = z * sd/sqrt(n)) %>%
-  ggplot(aes(x = cereal, y = m, fill = company)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  geom_errorbar(aes(ymin = m - ci, ymax = m + ci), 
-                width = 0.5, position = position_dodge(0.9)) +
-  coord_flip() +
-  theme_classic() +
-  xlab("") +
-  labs(fill = "") +
-  theme(axis.ticks.x = element_blank(),
-          axis.title.x = element_blank(),
-          axis.ticks.y = element_blank()) +
-  scale_fill_brewer() +
-  ggtitle("Mean revenue is ")
-```
+###Conclusions to Question 1
 
+Based on our analysis we can reliably say that General Mills' current promotional strategy has the competitive advange in the market when looking at mean revenue. Although this finding is both economically and statistically significant there are also areas in which General Mills can refine and improve their promotional strategy. Upon further analysis we can see that the Cocoa Puffs and Kix brands are not performing as well as other brands in the General Mills family of brands. Cocoa Puffs and Kix both have significantly lower mean revenue and mean units per sale than any of the other brands. Why is this? Pricing may need to be changed, Kix has a very high average price per volume so their packaging may be too small and customers are not seeing it as a "good value" whether it is on promotion or not. Testing pricing or packaging with Kix during an in-store promotion would be a valuable opportunity to acquire sample data sets for future analysis. For Cocoa Puffs, promotions significantly improve thier numbers so increasing the number of promotions invovling Cocoa Puffs could yield better numbers for the brand moving forward.
 
+##Question 2: How effective is General Mills' advertising strategy and how can we improve its revenue generating ability?
+
+###First we can examine if ads have any measurable affect on revenue or units sold.
 
 ```{r}
-mtp_gm %>% 
-  group_by(company, ad) %>% 
-  summarise(count = n(),
-  mean_revenue = mean(revenue),
-  mean_price = mean(price),
-  mean_price_vol = mean(price_volume),
-  mean_units = mean(units)) %>%
-  arrange(desc(mean_revenue)) %>%
+#Table for ad effectiveness across the whole market.
+mtp %>% 
+  group_by(ad) %>% 
+  summarise(Count = n(),
+  Average_Revenue = mean(revenue),
+  Average_Price = mean(price),
+  Average_Price_Vol = mean(price_volume),
+  Average_Units = mean(units)) %>%
+  arrange(desc(Average_Revenue)) %>%
   kable() %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) 
 
+#Table for just General Mills
 mtp_gm %>% 
-  filter(cereal == "Kix") %>%
-  group_by(cereal, ad) %>% 
-  summarise(count = n(),
-  mean_revenue = mean(revenue),
-  mean_price = mean(price),
-  mean_price_vol = mean(price_volume),
-  mean_units = mean(units)) %>%
-  arrange(desc(mean_revenue)) %>%
+  group_by(ad) %>% 
+  summarise(Count = n(),
+  Average_Revenue = mean(revenue),
+  Average_Price = mean(price),
+  Average_Price_Vol = mean(price_volume),
+  Average_Units = mean(units)) %>%
+  arrange(desc(Average_Revenue)) %>%
   kable() %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) 
+
 ```
 
-```{r}
- 
+**Null Hypothesis: Revenue is the same whether they are running ads or not.**
 
-# Is revenue the same whether General Mills runs an add or not?
-t.test(mtp_gm$units[mtp_gm$ad == "NONE"], mtp_gm$units[mtp_gm$ad != "NONE"])
+```{r}
+
+# Is revenue the same whether running an add or not?
+t.test(mtp$revenue[mtp$ad == "NONE"], mtp$revenue[mtp$ad != "NONE"])
 
 # 
 t.test(mtp_gm$revenue[mtp_gm$ad == "NONE"], mtp_gm$revenue[mtp_gm$ad != "NONE"])
-
 ```
 
 ```{r}
@@ -742,6 +803,50 @@ z <- qnorm(.95)
 
 # Incorporate CI into bar graph of means
 mtp %>%
+  mutate(ad = if_else(ad == "A", "Big", if_else(ad == "B", "Medium/Small", "None"))) %>% 
+  group_by(company, ad) %>%
+  summarise(m = mean(revenue), sd = sd(revenue), 
+            n = n(), ci = z * sd/sqrt(n)) %>%
+  ggplot(aes(x = company, y = m, fill = ad)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = m - ci, ymax = m + ci), 
+                width = 0.5, position = position_dodge(0.9)) +
+  theme_classic() +
+  labs(fill = "Ad") +
+  theme(axis.text = element_text(face = "bold", size = 11),
+        axis.ticks.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "top",
+        legend.title = element_text(face = "bold")) +
+  scale_fill_brewer(palette = "Purples") +
+  ggtitle("Mean Revenue Based on Ads",
+          subtitle = "Running ads does not statistically effect revenue. ")
+```
+
+**There is no statistical difference in mean revenue when running an ad or not**
+
+
+###Next we can see if there is a difference in units when running an ad.
+
+
+**Null Hypothesis: Revenue is the same whether they are running ads or not.**
+
+```{r}
+# Are units the same whether running an ads or not?
+t.test(mtp$units[mtp$ad == "NONE"], mtp$units[mtp$ad != "NONE"])
+
+# Are units the same whether running ads or not for General Mills?
+t.test(mtp_gm$units[mtp_gm$ad == "NONE"], mtp_gm$units[mtp_gm$ad != "NONE"])
+```
+
+```{r}
+# 90% CI, get z-value for upper tail, use .95 since is one sided
+z <- qnorm(.95)
+
+# Incorporate CI into bar graph of means
+mtp %>%
+  mutate(ad = if_else(ad == "A", "Big", if_else(ad == "B", "Medium/Small", "None"))) %>% 
   group_by(company, ad) %>%
   summarise(m = mean(units), sd = sd(units), 
             n = n(), ci = z * sd/sqrt(n)) %>%
@@ -750,33 +855,100 @@ mtp %>%
   geom_errorbar(aes(ymin = m - ci, ymax = m + ci), 
                 width = 0.5, position = position_dodge(0.9)) +
   theme_classic() +
-  xlab("") +
-  ylab("") +
-  theme(axis.ticks.x = element_blank(),
-          axis.title.x = element_blank(),
-          axis.ticks.y = element_blank()) +
-  scale_fill_brewer() +
-  ggtitle("Mean Units is ")
+  labs(fill = "Ad") +
+  theme(axis.text = element_text(face = "bold", size = 11),
+        axis.ticks.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "top",
+        legend.title = element_text(face = "bold")) +
+  scale_fill_brewer(palette = "Purples") +
+  ggtitle("Mean Units based on Ads",
+          subtitle = "Running ads does statistically effect average units. ")
 ```
 
 ```{r}
 mtp_gm %>%
+  mutate(ad = if_else(ad == "A", "Big", if_else(ad == "B", "Medium/Small", "None")),
+         cereal = str_replace(cereal, "Toast Crunch", "Tst Crn")) %>%
   group_by(cereal, ad) %>%
   summarise(m = mean(units), sd = sd(units), 
             n = n(), ci = z * sd/sqrt(n)) %>%
-  ggplot(aes(x = cereal, y = m, fill = ad)) +
+  ggplot(aes(x = reorder(cereal,m), y = m, fill = ad)) +
   geom_bar(stat = "identity", position = "dodge") +
   geom_errorbar(aes(ymin = m - ci, ymax = m + ci), 
                 width = 0.5, position = position_dodge(0.9)) +
   theme_classic() +
-  xlab("") +
-  ylab("") +
-  theme(axis.ticks.x = element_blank(),
-          axis.title.x = element_blank(),
-          axis.ticks.y = element_blank()) +
-  scale_fill_brewer() +
-  ggtitle("Mean Units is ")
+  labs(fill = "Ad") +
+  theme(axis.text = element_text(face = "bold", size = 9),
+        axis.ticks.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "top",
+        legend.title = element_text(face = "bold")) +
+  scale_fill_brewer(palette = "Purples") +
+  ggtitle("Mean Units Based on Ads",
+          subtitle = "Running ads does statistically effect average units. ")
+
+#Graph for Memo finding 2.
+
+mtp_g3 <- mtp_gm %>%
+  mutate(ad = if_else(ad == "A", "Big", if_else(ad == "B", "Medium/Small", "None")),
+         cereal = str_replace(cereal, "Toast Crunch", "Tst Crn")) %>%
+  group_by(cereal, ad) %>%
+  summarise(m = mean(units), sd = sd(units), 
+            n = n(), ci = z * sd/sqrt(n)) %>%
+  ggplot(aes(x = reorder(cereal,m), y = m, fill = ad)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_classic() +
+  labs(fill = "Ad") +
+  theme(axis.text = element_text(face = "bold", size = 9),
+        axis.ticks.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "top",
+        legend.title = element_text(face = "bold")) + 
+  scale_fill_brewer(palette = "Purples") +
+  ggtitle("Mean Units Based on Ads",
+          subtitle = "Running ads does statistically effect average units. ")
+
+mtp_g3
+
+#Save graph for Memo
+ggsave("mtp_g3.png", plot = mtp_g3)
 ```
 
+###Conclusion to Qustion 2
+
+Based on our analysis of the effectiveness of advertising on Genereal Mills brands we found that there is no statistical difference in effect on revenue when using ads vs. when not using them. This has interesting implications because we can show that advertising does have an effect on units-- increasing them by a statistically significant amount. Since units and revenue are highly positively correlated we would think that these increases in units would lead to an increase in revenue. However, this is not the case. This is probably due to pricing and running ads concurrently with promotions, we recommend trying to increase the amount of ads run without promotions and revist to see if the ad campaigns are successful at increasing revenue.
 
 
+#Multiple regression with log(earnings) as the dependent variable.
+
+```{r}
+mod_all <- lm(log(revenue) ~ cereal + ad + promo + units, data = mtp)
+
+# Review output
+summary(mod_all)
+
+mtp_gm <- mtp %>%
+  filter(company == "General_Mills")
+  
+mod_gm <- lm(log(revenue) ~ cereal + ad + promo + units, data = mtp_gm)
+
+# Review output
+summary(mod_gm)
+```
+
+##Some take-aways from a quick analysis of the regression output.
+
+Note: A regression analysis was not used for our analysis but is included here to give a deeper understanding of the data & dynamics at play, price was excluded to limit endogenous variable bias.  
+
+* We can see the relationship with units; controlling for all other variables revenue increases by roughly 11% for each additional unit and is highly statistically significant.  
+  +This is in line with our analysis concerning the importance of units sold on revenue.  
+
+* There is a large negative relationship between running an in-store promotion and revenue; however, we have to remember that this is controlling for all other variables so without an increase in units running a promotion will decrease revenue by 21.65% industry wide and 25.52% for General Mills and is highly statistically significant.  
+
+* Again, emphasizing the importance of units sold, holding all else constant we see that Lucky Charms would increase revenue by roughly 26.2% over Cheerios and is highly statistically significant. This is probably because they are magically delicious. 
+
+* For our research questions these regressions are not extremely helpful but they reinforce a few of the themes present throughout our analysis.

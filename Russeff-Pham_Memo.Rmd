@@ -1,0 +1,38 @@
+---
+output: html_document
+---
+
+#### **To: Chris Lee**  
+  
+#### **From: Mark Russeff & Loi Pham**  
+  
+#### **Date: `r format(Sys.time(), '%B %d, %Y')`**   
+  
+#### **RE: Office Mate Sales Analysis**  
+
+*** 
+  
+  Our team was tasked with performing an exploratory data analysis (EDA) of the sales of Office Mate in order to make sales strategy recommendations to improve the profitability of the business moving forward. Using the data provided, we were able to analyze the sales figures and identify two areas where we can minimize loss and maximize profit. Based on our analysis we recommend instituting a company-wide sales initiative to limit the use of discounts; particularly those above 30% because they are having a substantially negative effect on profitability. Second, we recommend that the sale of tables and other large items be phased out because they have not shown to be significantly profitable in any region.  
+
+  The use of discounts above 30% by the sales staff has led to substantial loses, so in order to combat the use of such discounts we recommend instituting a company-wide initiative to discourage the use of excessive discounting. As the size of discounts increases the profits from those transactions decreases resulting in substantial losses for the company. In fact, we found little evidence that discounting even leads to higher quantity orders. The accompanying graph illustrates the effect this discounting is having on profitability. As you can see, the Central Region has been giving discounts of 80% which have resulted in significant losses for the company. If this discounting can be cut back we can minimize these losses and move forward on a path to greater profitability.  
+  
+![](dis_g1.png){width=600px} 
+  
+  Our second recommendation is to gradually begin to pull back on the sale of tables, as well as other large high overhead items. This can be done in phases, beginning with tables and then moving into other unprofitable categories. In our analysis we found that the sale of tables resulted in losses to the company and have overall been our most unprofitable category. In addition, tables have also been discounted at a fairly high rate which is surely having a negative effect. Tables also require higher shipping costs and more storage space, both hidden costs that can negatively affect profit. The graph below vividly illustrates the magnitude to which the sale of tables has lagged behind many other categories. If we examine a graph separated by region we can also see that even our best performing sales team (the West region) has only achieved a small amount of success selling tables.  
+  
+  
+
+![](profit_g1.png){width=600px}  
+
+![](profit_g2.png){width=600px}
+  
+  
+  In conclusion, we believe that the best path to higher profits for Office Mate is to first focus on minimizing losses so that we can shift focus on driving sales in growth categories moving forward. Based on our findings, limiting discounting and the sale of unprofitable categories is how we do that. There may also be a need for further exploration to determine the reasons for the high volume of discounting within the company. If you have any questions regarding our analysis please do not hesitate to contact us. Upon request we can provide a more in-depth analysis with code and additional graphs.  
+  
+  
+  
+
+Sincerely,
+
+Mark Russeff & Loi Pham
+
